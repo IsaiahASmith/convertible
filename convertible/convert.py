@@ -1,23 +1,36 @@
-from typing import Callable
+from typing import Callable, Optional
 
-from .Convertible import Convertible
 from .ignore_self import ignore_self
 from .Convert.Convert import Convert
 from .Convert.ConvertHandler.ConvertHandler import ConvertHandler
+from .Convert.ExceptionHandler.ExceptionHandler import ExceptionHandler
 
 
-def convert(*args: Convertible, **kwargs: Convertible):
+def convert(
+    convert_handler: ConvertHandler, exception_handler: Optional[ExceptionHandler] = None
+) -> Callable[[Callable], Convert]:
     """
-    A decorator to automatically convert types with Convertibles.
-    """
+    A function to provide a descriptor of type Convert.
+    Unlike if it was called normally, this function will strip the self argument off of classes called.
 
-    convertable_args = args
-    convertable_kwargs = kwargs
+    Parameters
+    ----------
+    convert_handler : ConvertHandler
+        The handler containing the Convertibles to automatically convert arguments.
+    exception_handler : Optional[ExceptionHandler], optional
+        The handler for any ConvertExceptions, by default None
+        If None is provided, then no Exceptions will be caught automatically.
+
+    Returns
+    -------
+    Callable[[Callable], Convert]
+        A descriptor with the Convert instance, which will ignore the self argument of classes.
+    """
 
     @ignore_self
-    def convert(func: Callable):
+    def convert(func: Callable) -> Convert:
         """The middle wrapper for the decorator"""
 
-        return Convert(func, ConvertHandler(*convertable_args, **convertable_kwargs))
+        return Convert(func, convert_handler, exception_handler)
 
     return convert

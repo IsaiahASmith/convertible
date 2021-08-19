@@ -1,4 +1,5 @@
 from convertible import convert, Convertible
+from convertible.Convert.ConvertHandler.ConvertHandler import ConvertHandler
 
 
 class Test(Convertible):
@@ -11,7 +12,7 @@ class Test(Convertible):
 
 def test_class_arg():
     class Foo:
-        @convert(Test())
+        @convert(ConvertHandler(Test()))
         def test(self, test: str) -> str:
             return test
 
@@ -20,7 +21,7 @@ def test_class_arg():
 
 def test_class_args():
     class Foo:
-        @convert(Test(), Test())
+        @convert(ConvertHandler(Test(), Test()))
         def test(self, test: str, test2: str) -> str:
             return test + test2
 
@@ -29,7 +30,7 @@ def test_class_args():
 
 def test_class_kwarg():
     class Foo:
-        @convert(test=Test())
+        @convert(ConvertHandler(test=Test()))
         def test(self, test: str) -> str:
             return test
 
@@ -38,7 +39,7 @@ def test_class_kwarg():
 
 def test_class_kwargs():
     class Foo:
-        @convert(test=Test(), test2=Test())
+        @convert(ConvertHandler(test=Test(), test2=Test()))
         def test(self, test: str, test2: str) -> str:
             return test + test2
 
@@ -47,7 +48,7 @@ def test_class_kwargs():
 
 def test_class_both():
     class Foo:
-        @convert(Test(), Test(), Test(), test=Test(), test2=Test(), test3=Test())
+        @convert(ConvertHandler(Test(), Test(), Test(), test=Test(), test2=Test(), test3=Test()))
         def test(self, test: str, test2: str, test3: str) -> str:
             return test + test2 + test3
 
@@ -60,7 +61,7 @@ def test_class_both():
 
 
 def test_function_arg():
-    @convert(Test())
+    @convert(ConvertHandler(Test()))
     def test(test: str) -> str:
         return test
 
@@ -68,7 +69,7 @@ def test_function_arg():
 
 
 def test_function_args():
-    @convert(Test(), Test())
+    @convert(ConvertHandler(Test(), Test()))
     def test(test: str, test2: str) -> str:
         return test + test2
 
@@ -76,7 +77,7 @@ def test_function_args():
 
 
 def test_function_kwarg():
-    @convert(test=Test())
+    @convert(ConvertHandler(test=Test()))
     def test(test: str) -> str:
         return test
 
@@ -84,7 +85,7 @@ def test_function_kwarg():
 
 
 def test_function_kwargs():
-    @convert(test=Test(), test2=Test())
+    @convert(ConvertHandler(test=Test(), test2=Test()))
     def test(test: str, test2: str) -> str:
         return test + test2
 
@@ -92,7 +93,7 @@ def test_function_kwargs():
 
 
 def test_function_both():
-    @convert(Test(), Test(), Test(), test=Test(), test2=Test(), test3=Test())
+    @convert(ConvertHandler(Test(), Test(), Test(), test=Test(), test2=Test(), test3=Test()))
     def test(test: str, test2: str, test3: str) -> str:
         return test + test2 + test3
 
