@@ -4,6 +4,8 @@ from convertible.Convertible import Convertible
 
 
 class _ConvertArgsIterator:
+    __slots__ = ("converts",)
+
     def __init__(self, *converts: Convertible):
         self.converts = converts
 
@@ -46,6 +48,8 @@ class _ConvertArgsIterator:
 
 
 class _ConvertKwargsIterator:
+    __slots__ = ("converts",)
+
     def __init__(self, **converts: Convertible):
         self.converts = converts
 
@@ -71,6 +75,8 @@ class _ConvertKwargsIterator:
 
 
 class ConvertHandler:
+    __slots__ = ("args_converter", "kwargs_converter")
+
     def __init__(self, *args: Convertible, **kwargs: Convertible):
         self.args_converter = _ConvertArgsIterator(*args)
         self.kwargs_converter = _ConvertKwargsIterator(**kwargs)

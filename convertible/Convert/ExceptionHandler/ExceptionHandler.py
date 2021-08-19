@@ -4,6 +4,8 @@ from .ConvertException import ConvertException
 
 
 class ExceptionHandler:
+    __slots__ = ("handlers",)
+
     def __init__(self, handlers: Dict[Type[Exception], Callable]):
         self.handlers = handlers
 

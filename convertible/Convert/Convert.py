@@ -9,6 +9,8 @@ from .ExceptionHandler.ConvertException import ConvertException
 
 
 class Convert:
+    __slots__ = ("function", "convert_handler", "exception_handler")
+
     def __init__(
         self, function: Callable, convert_handler: ConvertHandler, exception_handler: Optional[ExceptionHandler] = None
     ):
