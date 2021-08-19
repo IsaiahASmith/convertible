@@ -10,4 +10,4 @@ class NextArgumentException(Exception):
 
     def __init__(self, convertible: Convertible, message: Optional[str] = None):
         self.convertible = convertible
-        super().__init__(message or f"{self.convert} requested the next argument")
+        super().__init__(message or f"{self.convertible} requested the next argument")
