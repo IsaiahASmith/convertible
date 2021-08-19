@@ -18,6 +18,8 @@ def ignore_self(decorator: Callable[[Callable], Any]):
         A descriptor to peak to see if it is a method or function at runtime.
         """
 
+        __slots__ = ("decorator", "func")
+
         def __init__(self, decorator: Callable[[Callable], Any], func: Callable):
             self.decorator = decorator
             self.func = func
