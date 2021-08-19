@@ -2,6 +2,9 @@ from convertible import convert, Convertible
 
 
 class Test(Convertible):
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}()"
+
     def convert(self, argument: int) -> str:
         return str(argument)
 
