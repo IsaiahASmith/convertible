@@ -37,6 +37,11 @@ class _ConvertArgsIterator:
                 else:
                     raise StopIteration
 
+            def undo(_self):
+                _self.index -= 1
+                if _self.index < 0:
+                    raise IndexError(f"{_self} cannot have an index below zero")
+
             def __next__(_self):
                 arg = _self.get_next()
                 if _self.index < len(self.converts):
