@@ -3,6 +3,7 @@ from typing import Callable, Optional, Iterator, Any, List, Dict
 from convertible.Convertible import Convertible
 
 from .NextArgumentException import NextArgumentException
+from .RejectArgumentException import RejectArgumentException
 from .ConvertHandler.ConvertHandler import ConvertHandler
 from .ExceptionHandler.ExceptionHandler import ExceptionHandler
 from .ExceptionHandler.ConvertException import ConvertException
@@ -93,6 +94,10 @@ class Convert:
             return convertible.convert(argument)
         except NextArgumentException as exception:
             return self._handle_next_argument_convertible(iterator, exception.convertible)
+        except RejectArgumentException as exception:
+            # The Iterator will be of type _InnerArgIterator, having the method undo.
+            iterator.undo()
+            return exception.result
         except ConvertException as exception:
             self.exception_handler(exception)
 
@@ -115,6 +120,10 @@ class Convert:
             return self._validate(iterator)
         except NextArgumentException as exception:
             return self._handle_next_argument_convertible(iterator, exception.convertible)
+        except RejectArgumentException as exception:
+            # The Iterator will be of type _InnerArgIterator, having the method undo.
+            iterator.undo()
+            return exception.result
 
     def _get_arguments(self, iterator: Iterator, *args: Any) -> List[Any]:
         """
