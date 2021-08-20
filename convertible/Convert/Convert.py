@@ -1,10 +1,10 @@
-from typing import Callable, Optional, Iterator, Any, List, Dict
+from typing import Callable, Optional, Iterator, Any, List, Dict, Union
 
 from convertible.Convertible import Convertible
 
 from .NextArgumentException import NextArgumentException
 from .RejectArgumentException import RejectArgumentException
-from .ConvertHandler.ConvertHandler import ConvertHandler
+from .ConvertHandler.ConvertHandler import ConvertHandler, _InnerArgIterator
 from .ExceptionHandler.ExceptionHandler import ExceptionHandler
 from .ExceptionHandler.ConvertException import ConvertException
 
@@ -72,7 +72,7 @@ class Convert:
         except ConvertException as exception:
             self.exception_handler(exception)
 
-    def _handle_next_argument_convertible(self, iterator: Iterator, convertible: Convertible) -> Any:
+    def _handle_next_argument_convertible(self, iterator: _InnerArgIterator, convertible: Convertible) -> Any:
         """
         Some Convertibles can request to have an additional argument provided.
         To provide the extra arguments, this method pulls the next argument from the iterator.
@@ -105,7 +105,7 @@ class Convert:
         except ConvertException as exception:
             self.exception_handler(exception)
 
-    def _validate_args(self, iterator: Iterator) -> Any:
+    def _validate_args(self, iterator: Union[Iterator, _InnerArgIterator]) -> Any:
         """
         Provides an extra series of checks for simple exceptions, to provide the ability to combine
         multiple arguments together to form types such as lists and sets.
@@ -123,13 +123,16 @@ class Convert:
         try:
             return self._validate(iterator)
         except NextArgumentException as exception:
-            return self._handle_next_argument_convertible(iterator, exception.convertible)
+            if isinstance(iterator, _InnerArgIterator):
+                return self._handle_next_argument_convertible(iterator, exception.convertible)
+            raise
         except RejectArgumentException as exception:
-            # The Iterator will be of type _InnerArgIterator, having the method undo.
-            iterator.undo()
-            return exception.result
+            if isinstance(iterator, _InnerArgIterator):
+                iterator.undo()
+                return exception.result
+            raise
 
-    def _get_arguments(self, iterator: Iterator, *args: Any) -> List[Any]:
+    def _get_arguments(self, iterator: _InnerArgIterator, *args: Any) -> List[Any]:
         """
         Generates the a list of all the arguments passed from __call__.
 
