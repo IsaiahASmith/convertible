@@ -9,6 +9,10 @@ from .ExceptionHandler.ExceptionHandler import ExceptionHandler
 from .ExceptionHandler.ConvertException import ConvertException
 
 
+class NoMoreArguments:
+    """A class to indicate when there are no more arguments from the iterator"""
+
+
 class Convert:
     __slots__ = ("function", "convert_handler", "exception_handler")
 
@@ -88,7 +92,7 @@ class Convert:
             argument = iterator.get_next()
         except StopIteration:
             # StopIteration is passed to the convertible to indicate that there are no more arguments.
-            argument = StopIteration
+            argument = NoMoreArguments()
 
         try:
             return convertible.convert(argument)
