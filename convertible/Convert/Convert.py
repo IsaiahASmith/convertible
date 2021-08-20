@@ -51,7 +51,7 @@ class Convert:
         The actual decorator for the descriptor.  When called, this will automatically convert all eligible arguments.
         """
         args_iter, kwargs_iter = self.convert_handler(*args, **kwargs)
-        return self.function(*self._get_arguments(args_iter), **self._get_keyword_arguments(kwargs_iter))
+        return self.function(*self._get_arguments(args_iter), **self._get_keyword_argument(kwargs_iter))
 
     def _validate(self, iterator: Iterator) -> Any:
         """
@@ -156,7 +156,7 @@ class Convert:
                 break
         return new_args
 
-    def _get_keyword_arguments(self, iterator: Iterator, **kwargs: Any) -> Dict[str, Any]:
+    def _get_keyword_argument(self, iterator: Iterator, **kwargs: Any) -> Dict[str, Any]:
         """
         Generates the a list of all the keyword arguments passed from __call__.
 
