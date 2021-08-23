@@ -7,6 +7,9 @@ class Convertible(ABC):
     A class to automatically convert an argument
     """
 
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}()"
+
     @abstractmethod
     def convert(self, argument: Any) -> Any:
         """

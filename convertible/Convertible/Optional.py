@@ -23,6 +23,12 @@ class Optional(Convertible):
         """
         self.convertible = convertible
 
+    def __repr__(self) -> str:
+        if self.convertible is self:
+            return f"{self.__class__.__name__}(...)"
+        else:
+            return f"{self.__class__.__name__}({self.convertible})"
+
     def convert(self, argument: Any) -> Any:
         """
         Converts the argument to the specified type of the Convertible provided or returns None.
