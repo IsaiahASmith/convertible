@@ -31,6 +31,18 @@ class Greedy(Convertible):
         self.convertible = convertible
         self._results = _results or []
 
+    def __repr__(self) -> str:
+        if self.convertible is self:
+            if self._results:
+                return f"{self.__class__.__name__}(..., _results={self._results})"
+            else:
+                return f"{self.__class__.__name__}(...)"
+        else:
+            if self._results:
+                return f"{self.__class__.__name__}({self.convertible}, _results={self._results})"
+            else:
+                return f"{self.__class__.__name__}({self.convertible})"
+
     def _return_results(self):
         """
         Returns the results by raising a RejectArgumentException.
