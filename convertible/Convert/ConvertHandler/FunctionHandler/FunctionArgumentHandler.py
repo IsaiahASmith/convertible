@@ -32,21 +32,24 @@ def _get_arguments_convertible(
     argument_convertibles: Tuple[Tuple[str, Convertible], ...], varargs: Optional[str], convertibles: Convertibles
 ) -> Iterable[Convertible]:
     """
-    [summary]
+    Finds the Convertibles associated with *args.
+    If None are found, then the function will search for a keyword for the *arg variable name instead.
+    Note: If a Convertible is provided with a keyword, then it will be assumed to be a keyword only
+        argument.  All argument Convertibles must be passed as arguments, not keywords.
 
     Parameters
     ----------
     argument_convertibles : Tuple[Tuple[str, Convertible], ...]
-        [description]
+        A Tuple containing both the argument and keyword arguments for the function or method, respectively.
     varargs : Optional[str]
-        [description]
+        The name of the *args variable inside the function or method.
     convertibles : Convertibles
-        [description]
+        A Tuple containing both the argument and keyword arguments for the Convertibles, respectively.
 
     Returns
     -------
     Iterable[Convertible]
-        [description]
+        An Iterable that will provide a Convertible for each arg in *args to be converted.
     """
     if varargs is None:
         return ConvertIterable()
@@ -54,15 +57,29 @@ def _get_arguments_convertible(
         if varargs in convertibles[1]:
             return convertibles[1][varargs]
         return ConvertIterable()
-    return ConvertIterable(convertibles.args[args_len:])
+    return ConvertIterable(convertibles[0][args_len:])
 
 
 class FunctionArgumentHandler:
+    """
+    A class to find the arguments of a function or method.
+    """
+
     __slots__ = ("argument_convertibles", "arguments_convertible")
 
     def __init__(
         self, argument_convertibles: Tuple[Tuple[str, Convertible], ...], arguments_convertible: Iterable[Convertible]
     ):
+        """
+        Initializes the handler with how to convert arguments for a function or method.
+
+        Parameters
+        ----------
+        argument_convertibles : Tuple[Tuple[str, Convertible], ...]
+            A tuple of tuples representing the name of the argument and its corresponding convertible.
+        arguments_convertible : Iterable[Convertible]
+            An iterator to convert an unknown amount of *args ad hoc.
+        """
         self.argument_convertibles = argument_convertibles
         self.arguments_convertible = arguments_convertible
 
@@ -71,6 +88,18 @@ class FunctionArgumentHandler:
 
     @classmethod
     def from_function(cls, args: List[str], varargs: Optional[str], convertibles: Convertibles):
+        """
+        Initializes the handler from variables associated from inspecting a function or method.
+
+        Parameters
+        ----------
+        args : List[str]
+            The list of names for the arguments of a function.
+        varargs : Optional[str]
+            The name of the *args variable, if one is present.
+        convertibles : Convertibles
+            A Tuple containing both the argument and keyword arguments for the Convertibles, respectively.
+        """
         return cls(
             (argument_convertibles := _get_argument_convertibles(args, convertibles[0])),
             _get_arguments_convertible(argument_convertibles, varargs, convertibles),
