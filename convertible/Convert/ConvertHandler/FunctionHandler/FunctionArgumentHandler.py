@@ -1,13 +1,14 @@
 from typing import Tuple, List, Optional, Iterable
 
-from . import Convertibles
+from .ConvertibleCallable import ConvertibleCallable
+from .ConvertibleArgument import ConvertibleArgument
 from ..Iterable import ConvertIterable
 from convertible.Convertible import Convertible
 
 
 def _get_argument_convertibles(
     args: List[str], convertibles: Tuple[Convertible, ...]
-) -> Tuple[Tuple[str, Convertible], ...]:
+) -> Tuple[ConvertibleArgument, ...]:
     """
     Finds the arguments Convertibles and their respective names.
     Note: If a Convertible is provided with a keyword, then it will be assumed to be a keyword only
@@ -25,11 +26,13 @@ def _get_argument_convertibles(
     Tuple[Tuple[str, Convertible], ...]
         The list of argument names and their respective Convertible.
     """
-    return tuple([(name, convertible) for name, convertible in zip(args, convertibles)])
+    return tuple([ConvertibleArgument(name, convertible) for name, convertible in zip(args, convertibles)])
 
 
 def _get_arguments_convertible(
-    argument_convertibles: Tuple[Tuple[str, Convertible], ...], varargs: Optional[str], convertibles: Convertibles
+    argument_convertibles: Tuple[Tuple[str, Convertible], ...],
+    varargs: Optional[str],
+    convertibles: ConvertibleCallable,
 ) -> Iterable[Convertible]:
     """
     Finds the Convertibles associated with *args.
@@ -43,7 +46,7 @@ def _get_arguments_convertible(
         A Tuple containing both the argument and keyword arguments for the function or method, respectively.
     varargs : Optional[str]
         The name of the *args variable inside the function or method.
-    convertibles : Convertibles
+    convertibles : ConvertibleCallable
         A Tuple containing both the argument and keyword arguments for the Convertibles, respectively.
 
     Returns
@@ -55,9 +58,9 @@ def _get_arguments_convertible(
         return ConvertIterable()
     if (args_len := len(argument_convertibles)) > len(convertibles[0]):
         if varargs in convertibles[1]:
-            return convertibles[1][varargs]
+            return convertibles.convertible_keyword_arguments[varargs]
         return ConvertIterable()
-    return ConvertIterable(convertibles[0][args_len:])
+    return ConvertIterable(convertibles.convertible_arguments[args_len:])
 
 
 class FunctionArgumentHandler:
@@ -68,14 +71,14 @@ class FunctionArgumentHandler:
     __slots__ = ("argument_convertibles", "arguments_convertible")
 
     def __init__(
-        self, argument_convertibles: Tuple[Tuple[str, Convertible], ...], arguments_convertible: Iterable[Convertible]
+        self, argument_convertibles: Tuple[ConvertibleArgument, ...], arguments_convertible: Iterable[Convertible]
     ):
         """
         Initializes the handler with how to convert arguments for a function or method.
 
         Parameters
         ----------
-        argument_convertibles : Tuple[Tuple[str, Convertible], ...]
+        argument_convertibles : Tuple[ConvertibleArgument, ...]
             A tuple of tuples representing the name of the argument and its corresponding convertible.
         arguments_convertible : Iterable[Convertible]
             An iterator to convert an unknown amount of *args ad hoc.
@@ -87,7 +90,7 @@ class FunctionArgumentHandler:
         return f"{self.__class__.__name__}({self.argument_convertibles}, {self.arguments_convertible})"
 
     @classmethod
-    def from_function(cls, args: List[str], varargs: Optional[str], convertibles: Convertibles):
+    def from_function(cls, args: List[str], varargs: Optional[str], convertibles: ConvertibleCallable):
         """
         Initializes the handler from variables associated from inspecting a function or method.
 
@@ -97,7 +100,7 @@ class FunctionArgumentHandler:
             The list of names for the arguments of a function.
         varargs : Optional[str]
             The name of the *args variable, if one is present.
-        convertibles : Convertibles
+        convertibles : ConvertibleCallable
             A Tuple containing both the argument and keyword arguments for the Convertibles, respectively.
         """
         return cls(

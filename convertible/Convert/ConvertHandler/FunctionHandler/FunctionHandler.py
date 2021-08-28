@@ -1,7 +1,7 @@
 from typing import Type, Callable, Optional
 from inspect import getfullargspec
 
-from . import Convertibles
+from .ConvertibleCallable import ConvertibleCallable
 from .FunctionIterator import FunctionIterator
 from .FunctionArgumentHandler import FunctionArgumentHandler
 from .FunctionKeywordArgumentHandler import FunctionKeywordArgumentHandler
@@ -47,7 +47,7 @@ class FunctionHandler:
     def from_function(
         cls,
         function: Callable,
-        convertibles: Convertibles,
+        convertibles: ConvertibleCallable,
         argument_handler: Optional[Type[FunctionArgumentHandler]] = None,
         keyword_handler: Optional[Type[FunctionKeywordArgumentHandler]] = None,
     ):
@@ -62,7 +62,7 @@ class FunctionHandler:
         ----------
         function : Callable
             The function or method to be inspected.
-        convertibles : Convertibles
+        convertibles : ConvertibleCallable
             The *args and **kwargs of the Convertibles that are to be associated with the function or method.
         argument_handler : Optional[Type[FunctionArgumentHandler]], optional
             The handler for determining the type hints of *args, by default None
