@@ -1,89 +1,10 @@
-from typing import Type, Dict, Callable, Optional, Tuple, Iterator
-from collections import deque
+from typing import Type, Callable, Optional
 from inspect import getfullargspec
 
 from . import Convertibles
+from .FunctionIterator import FunctionIterator
 from .FunctionArgumentHandler import FunctionArgumentHandler
 from .FunctionKeywordArgumentHandler import FunctionKeywordArgumentHandler
-from convertible.Convertible import Convertible
-
-
-class FunctionIterator:
-    def __init__(
-        self,
-        argument_handler: FunctionArgumentHandler,
-        keyword_handler: FunctionKeywordArgumentHandler,
-        *args,
-        **kwargs,
-    ):
-        self.args = deque(args)
-        self.kwargs = kwargs
-        self.argument_handler = argument_handler
-        self.keyword_handler = keyword_handler
-
-    def __repr__(self) -> str:
-        return f"{self.__class__.__name__}({self.argument_handler}, {self.keyword_handler})"
-
-    def __iter__(self):
-        def iterator():
-            for (name, convertible) in self.argument_convertibles:
-                try:
-                    arg = self.args.popleft()
-                except IndexError:
-                    if name in self.kwargs:
-                        arg = self.kwargs[name]
-                        del self.kwargs[name]
-                    else:
-                        arg = None
-                yield convertible.convert(arg)
-
-            arguments_convertible = self.arguments_convertible
-            while True:
-                try:
-                    arg = self.args.popleft()
-                except IndexError:
-                    break
-
-                try:
-                    convertible = next(arguments_convertible)
-                except StopIteration:
-                    convertible = None
-                if convertible is not None:
-                    yield convertible.convert(arg)
-                else:
-                    yield arg
-
-            for name, convertible in self.keyword_only_convertibles.items():
-                if name in self.kwargs:
-                    kwarg = self.kwargs[name]
-                    del self.kwargs[name]
-                else:
-                    kwarg = None
-                yield convertible.convert(kwarg)
-
-            for name, kwarg in self.kwargs.items():
-                if name in self.keyword_arguments_convertible:
-                    convertible = self.keyword_arguments_convertible[name]
-                    del self.keyword_arguments_convertible[name]
-                    yield convertible.convert(kwarg)
-                else:
-                    yield kwarg
-
-    @property
-    def argument_convertibles(self) -> Tuple[Tuple[str, Convertible], ...]:
-        return self.argument_handler.argument_convertibles
-
-    @property
-    def arguments_convertible(self) -> Iterator[Convertible]:
-        return iter(self.argument_handler.arguments_convertible)
-
-    @property
-    def keyword_only_convertibles(self) -> Dict[str, Convertible]:
-        return self.keyword_handler.keyword_only_convertibles
-
-    @property
-    def keyword_arguments_convertible(self) -> Dict[str, Convertible]:
-        return self.keyword_handler.keyword_arguments_convertible
 
 
 class FunctionHandler:
@@ -94,14 +15,33 @@ class FunctionHandler:
         argument_handler: FunctionArgumentHandler,
         keyword_handler: FunctionKeywordArgumentHandler,
     ):
+        """
+        Initializes a the handler with the handles required to determine both *args and **kwargs.
+
+        Parameters
+        ----------
+        argument_handler : FunctionArgumentHandler
+            The handler in charge of handling finding *args.
+        keyword_handler : FunctionKeywordArgumentHandler
+            The handler in charge of handling finding **kwargs.
+        """
         self.argument_handler = argument_handler
         self.keyword_handler = keyword_handler
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self.argument_handler}, {self.keyword_handler})"
 
-    def __call__(self, *args, **kwargs):
-        pass
+    def __call__(self, *args, **kwargs) -> FunctionIterator:
+        """
+        Produces an iterable for iterating over the *args and **kwargs of the function or method.
+        This uses the inspection of the handlers to determine
+
+        Returns
+        -------
+        FunctionIterator
+            The iterable in charge of finding the convertibles.
+        """
+        return FunctionIterator(self.argument_handler, self.keyword_handler, args, kwargs)
 
     @classmethod
     def from_function(
@@ -111,6 +51,26 @@ class FunctionHandler:
         argument_handler: Optional[Type[FunctionArgumentHandler]] = None,
         keyword_handler: Optional[Type[FunctionKeywordArgumentHandler]] = None,
     ):
+        """
+        Inspect the function and utilizes the constructor for the handlers to enable better
+        convertible hints.  Specifically, *args can be accessed through a keyword argument, without
+        needing explicit declaration.  Overall, this enables an argument to be handled equally
+        even if it is called as an arg or kwarg.  The specifics of this is determined by the
+        constructor of the respective handlers.
+
+        Parameters
+        ----------
+        function : Callable
+            The function or method to be inspected.
+        convertibles : Convertibles
+            The *args and **kwargs of the Convertibles that are to be associated with the function or method.
+        argument_handler : Optional[Type[FunctionArgumentHandler]], optional
+            The handler for determining the type hints of *args, by default None
+            If None is provided, then the default type will be used.
+        keyword_handler : Optional[Type[FunctionKeywordArgumentHandler]], optional
+            The handler for determining the type hints of **kwargs, by default None
+            If None is provided, then the default type will be used.
+        """
         args, varargs, varkw, _, kwonlyargs, _, _ = getfullargspec(function)
         argument_handler = argument_handler or FunctionArgumentHandler
         keyword_handler = keyword_handler or FunctionKeywordArgumentHandler
