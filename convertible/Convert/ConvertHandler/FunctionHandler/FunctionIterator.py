@@ -41,7 +41,15 @@ class FunctionIterator:
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self.argument_handler}, {self.keyword_handler})"
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[ConvertArgument]:
+        """
+        Provides a ConvertArgument for each argument and applicable Convertible.
+
+        Yields
+        -------
+        Iterator[ConvertArgument]
+            The representation of an argument requested by Convert.
+        """
         return chain(
             self.argument_convertibles_iterator(),
             self.arguments_convertible_iterator(),
