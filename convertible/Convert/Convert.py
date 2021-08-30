@@ -1,16 +1,8 @@
-from typing import Callable, Optional, Iterator, Any, List, Dict, Union
+from typing import Callable, Optional
 
-from convertible.Convertible import Convertible
-
-from .NextArgumentException import NextArgumentException
-from .RejectArgumentException import RejectArgumentException
-from .ConvertHandler.ConvertHandler import ConvertHandler, _InnerArgIterator
+from .ConvertHandler.NewConvertHandler import ConvertHandler
 from .ExceptionHandler.ExceptionHandler import ExceptionHandler
 from .ExceptionHandler.ConvertException import ConvertException
-
-
-class NoMoreArguments:
-    """A class to indicate when there are no more arguments from the iterator"""
 
 
 class Convert:
@@ -48,135 +40,11 @@ class Convert:
 
     def __call__(self, *args, **kwargs):
         """
-        The actual decorator for the descriptor.  When called, this will automatically convert all eligible arguments.
-        """
-        args_iter, kwargs_iter = self.convert_handler(*args, **kwargs)
-        return self.function(*self._get_arguments(args_iter), **self._get_keyword_argument(kwargs_iter))
-
-    def _validate(self, iterator: Iterator) -> Any:
-        """
-        Validates a Convertible and handles simple exceptions.
-
-        Parameters
-        ----------
-        iterator : Iterator
-            The iterator yielding the next result.
-
-        Returns
-        -------
-        Any
-            The argument provided after converting it or leaving it as is.
+        The true decorator of the descriptor.  Everything must go through here.
         """
         try:
-            return next(iterator)
+            _args, _kwargs = self.convert_handler(*args, **kwargs)
         except ConvertException as exception:
             self.exception_handler(exception)
-
-    def _handle_next_argument_convertible(self, iterator: _InnerArgIterator, convertible: Convertible) -> Any:
-        """
-        Some Convertibles can request to have an additional argument provided.
-        To provide the extra arguments, this method pulls the next argument from the iterator.
-
-        Parameters
-        ----------
-        iterator : Iterator
-            The iterator yielding the next result.
-        convertible : Convertible
-            The argument provided after converting it or leaving it as is.
-        arguments: List
-            The arguments that are currently provided to the convertible.
-        """
-
-        try:
-            # The Iterator will be of type _InnerArgIterator, having the method get_next.
-            argument = iterator.get_next()
-        except StopIteration:
-            # StopIteration is passed to the convertible to indicate that there are no more arguments.
-            argument = NoMoreArguments()
-
-        try:
-            return convertible.convert(argument)
-        except NextArgumentException as exception:
-            return self._handle_next_argument_convertible(iterator, exception.convertible)
-        except RejectArgumentException as exception:
-            # The Iterator will be of type _InnerArgIterator, having the method undo.
-            iterator.undo()
-            return exception.result
-        except ConvertException as exception:
-            self.exception_handler(exception)
-
-    def _validate_args(self, iterator: Union[Iterator, _InnerArgIterator]) -> Any:
-        """
-        Provides an extra series of checks for simple exceptions, to provide the ability to combine
-        multiple arguments together to form types such as lists and sets.
-
-        Parameters
-        ----------
-        iterator : Iterator
-            The iterator yielding the next result.
-
-        Returns
-        -------
-        Any
-            The argument provided after converting it or leaving it as is.
-        """
-        try:
-            return self._validate(iterator)
-        except NextArgumentException as exception:
-            if isinstance(iterator, _InnerArgIterator):
-                return self._handle_next_argument_convertible(iterator, exception.convertible)
-            raise
-        except RejectArgumentException as exception:
-            if isinstance(iterator, _InnerArgIterator):
-                iterator.undo()
-                return exception.result
-            raise
-
-    def _get_arguments(self, iterator: _InnerArgIterator, *args: Any) -> List[Any]:
-        """
-        Generates the a list of all the arguments passed from __call__.
-
-        Parameters
-        ----------
-        iterator : Iterator
-            The argument iterator that will automatically convert the arguments specified.
-        args: Any
-            The arguments passed to __call__.
-
-        Returns
-        -------
-        List[Any]
-            The results of the arguments if no exceptions occur.
-        """
-        new_args = []
-        while True:
-            try:
-                new_args.append(self._validate_args(iterator))
-            except StopIteration:
-                break
-        return new_args
-
-    def _get_keyword_argument(self, iterator: Iterator, **kwargs: Any) -> Dict[str, Any]:
-        """
-        Generates the a list of all the keyword arguments passed from __call__.
-
-        Parameters
-        ----------
-        iterator : Iterator
-            The keyword argument iterator that will automatically convert the keyword arguments specified.
-        kwargs : Any
-            The keyword arguments passed to __call__.
-
-        Returns
-        -------
-        Dict[str, Any]
-            The results of the keyword arguments if no exceptions occur.
-        """
-        new_kwargs = {}
-        while True:
-            try:
-                key, value = self._validate_args(iterator)
-            except StopIteration:
-                break
-            new_kwargs.update({key: value})
-        return new_kwargs
+            return
+        return self.function(*_args, **_kwargs)
