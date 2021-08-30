@@ -14,6 +14,8 @@ class NoMoreArguments:
 
 
 class ConvertHandler:
+    __slots__ = ("handler",)
+
     def __init__(self, handler: FunctionHandler):
         """
         Initializes the handler to be able to provide the *args and **kwargs after converting.
