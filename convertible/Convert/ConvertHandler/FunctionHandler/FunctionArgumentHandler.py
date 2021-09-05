@@ -3,11 +3,12 @@ from typing import Tuple, List, Optional, Iterable
 from .ConvertibleCallable import ConvertibleCallable
 from .ConvertibleArgument import ConvertibleArgument
 from ..Iterable import ConvertIterable
-from convertible.Convertible import Convertible
+from convertible.Convertible.Convertible import Convertible
+from convertible.Convertible.Ignore import Ignore
 
 
 def _get_argument_convertibles(
-    args: List[str], convertibles: Tuple[Convertible, ...]
+    args: List[str], convertibles: Tuple[Convertible, ...], is_method: bool = False
 ) -> Tuple[ConvertibleArgument, ...]:
     """
     Finds the arguments Convertibles and their respective names.
@@ -20,12 +21,16 @@ def _get_argument_convertibles(
         The arguments' names of the function being decorated.
     convertibles : Tuple[Convertible, ...]
         The Convertibles being applied to the function.
+    is_method: bool
+        Determines if the first parameter should be ignored, by default False.
 
     Returns
     -------
     Tuple[Tuple[str, Convertible], ...]
         The list of argument names and their respective Convertible.
     """
+    if is_method:
+        return _get_argument_convertibles(args[1:], (Ignore(), *convertibles))
     return tuple([ConvertibleArgument(name, convertible) for name, convertible in zip(args, convertibles)])
 
 
@@ -90,7 +95,9 @@ class FunctionArgumentHandler:
         return f"{self.__class__.__name__}({self.argument_convertibles}, {self.arguments_convertible})"
 
     @classmethod
-    def from_function(cls, args: List[str], varargs: Optional[str], convertibles: ConvertibleCallable):
+    def from_function(
+        cls, args: List[str], varargs: Optional[str], convertibles: ConvertibleCallable, is_method: bool = False
+    ):
         """
         Initializes the handler from variables associated from inspecting a function or method.
 
@@ -104,6 +111,6 @@ class FunctionArgumentHandler:
             A Tuple containing both the argument and keyword arguments for the Convertibles, respectively.
         """
         return cls(
-            (argument_convertibles := _get_argument_convertibles(args, convertibles[0])),
+            (argument_convertibles := _get_argument_convertibles(args, convertibles[0], is_method)),
             _get_arguments_convertible(argument_convertibles, varargs, convertibles),
         )
