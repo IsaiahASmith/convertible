@@ -1,4 +1,4 @@
-from typing import Callable, Optional
+from typing import Callable, Optional, Union
 
 from .ConvertHandler.ConvertHandler import ConvertHandler
 from .ExceptionHandler.ExceptionHandler import ExceptionHandler
@@ -9,7 +9,10 @@ class Convert:
     __slots__ = ("function", "convert_handler", "exception_handler")
 
     def __init__(
-        self, function: Callable, convert_handler: ConvertHandler, exception_handler: Optional[ExceptionHandler] = None
+        self,
+        function: Callable,
+        convert_handler: Union[ConvertHandler, Callable[[Callable], ConvertHandler]],
+        exception_handler: Optional[ExceptionHandler] = None,
     ):
         """
         Initializes the Convert class, which acts as a callable descriptor.
@@ -18,8 +21,9 @@ class Convert:
         ----------
         function : Callable
             The function we are decorating.
-        convert_handler : ConvertHandler
-            The convert handler provided.
+        convert_handler : Union[ConvertHandler, Callable[[Callable], ConvertHandler]]
+            The convert handler provided or a function that will generate the ConvertHandler from the
+            function above.
             This manages the many Convertibles for arguments and keyword arguments, respectively.
         exception_handler : Optional[ExceptionHandler], optional
             The manager for any exceptions, by default None
@@ -27,7 +31,9 @@ class Convert:
             If None is provided, the ConvertExceptions will leak passed the Convert class.
         """
         self.function = function
-        self.convert_handler = convert_handler
+        if not isinstance(convert_handler, ConvertHandler):
+            convert_handler = convert_handler(function)
+        self.convert_handler: ConvertHandler = convert_handler
         self.exception_handler = exception_handler or ExceptionHandler({})
 
     def __repr__(self) -> str:
