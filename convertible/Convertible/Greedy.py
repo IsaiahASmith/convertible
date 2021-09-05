@@ -3,7 +3,7 @@ from typing import List, Any, Optional
 from convertible.Convert.NextArgumentException import NextArgumentException
 from convertible.Convert.RejectArgumentException import RejectArgumentException
 from convertible.Convert.ExceptionHandler.ConvertException import ConvertException
-from convertible.Convert.Convert import NoMoreArguments
+from convertible.Convert.ConvertHandler.ConvertHandler import NoMoreArguments
 
 from .Convertible import Convertible
 
