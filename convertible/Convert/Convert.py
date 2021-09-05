@@ -1,6 +1,6 @@
 from typing import Callable, Optional
 
-from .ConvertHandler.NewConvertHandler import ConvertHandler
+from .ConvertHandler.ConvertHandler import ConvertHandler
 from .ExceptionHandler.ExceptionHandler import ExceptionHandler
 from .ExceptionHandler.ConvertException import ConvertException
 
