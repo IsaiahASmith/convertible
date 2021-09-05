@@ -1,5 +1,5 @@
 from typing import Type, Callable, Optional
-from inspect import getfullargspec
+from inspect import getfullargspec, isfunction
 
 from .ConvertibleCallable import ConvertibleCallable
 from .FunctionIterator import FunctionIterator
@@ -72,9 +72,13 @@ class FunctionHandler:
             If None is provided, then the default type will be used.
         """
         args, varargs, varkw, _, kwonlyargs, _, _ = getfullargspec(function)
+
+        # Try to guess if function has a self variable.
+        is_method = isfunction(function) and "." in function.__qualname__ and args[0] == "self"
+
         argument_handler = argument_handler or FunctionArgumentHandler
         keyword_handler = keyword_handler or FunctionKeywordArgumentHandler
         return cls(
-            argument_handler.from_function(args, varargs, convertibles),
+            argument_handler.from_function(args, varargs, convertibles, is_method),
             keyword_handler.from_function(set(kwonlyargs), varkw, convertibles[1]),
         )
