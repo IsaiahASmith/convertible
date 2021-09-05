@@ -65,7 +65,7 @@ class ConvertHandler:
             if (keyword := convert_argument.keyword) is not None:
                 _kwargs.update({keyword: result})
             else:
-                _args.append(result)
+                _args.append(result[1])
         return _args, _kwargs
 
     def convert(
