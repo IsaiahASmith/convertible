@@ -6,7 +6,7 @@ from .ConvertHandler import ConvertHandler
 from .FunctionHandler.ConvertibleCallable import ConvertibleCallable
 
 
-def convert_handler(*args: Convertible, **kwargs: Convertible):
+def convert_handler(*args: Convertible, **kwargs: Convertible) -> Callable[[Callable], ConvertHandler]:
     """
     A decorator to help instantiate the ConvertHandler without before the function is created.
 
